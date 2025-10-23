@@ -1,12 +1,14 @@
 package com.kwwsyk.suit.adventurableworld.data.worldgen;
 
 import com.kwwsyk.suit.adventurableworld.worldgen.feature.FeaturesReg;
-import com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MiningLadderConfiguration;
+import com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.neoforged.neoforge.registries.DeferredHolder;
+
+import static com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig.LengthInclude.*;
 
 public class ConfiguredFeatures {
 
@@ -38,20 +40,21 @@ public class ConfiguredFeatures {
                     // The actual configured feature.
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MiningLadderConfiguration(true,2,20))
+                            new MineLadderConfig(true,4,32, false, DROP)
+                    )
             );
             bootstrap.register(
                     SHORT_LADDER_CONFIG,
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MiningLadderConfiguration(false,2,10)
+                            new MineLadderConfig(false,2,10, true, BOTH)
                     )
             );
             bootstrap.register(
                     LONG_LADDER_CONFIG,
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MiningLadderConfiguration(true,15,64)
+                            new MineLadderConfig(true,15,64, true, DROP)
                     )
             );
         });

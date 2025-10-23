@@ -1,6 +1,6 @@
 package com.kwwsyk.suit.adventurableworld.worldgen.feature;
 
-import com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MiningLadderConfiguration;
+import com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,17 +11,19 @@ import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntPredicate;
 
-public class SimpleMiningLadder extends Feature<MiningLadderConfiguration> {
+import static com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig.LengthInclude.*;
 
-    Class ladderClass = LadderBlock.class;
+public class SimpleMiningLadder extends Feature<MineLadderConfig> {
 
-    public SimpleMiningLadder(Codec<MiningLadderConfiguration> codec) {
+    /// @see LadderBlock
+
+    public SimpleMiningLadder(Codec<MineLadderConfig> codec) {
         super(codec);
     }
 
@@ -33,64 +35,103 @@ public class SimpleMiningLadder extends Feature<MiningLadderConfiguration> {
      *                the feature is being placed at
      */
     @Override
-    public boolean place(FeaturePlaceContext<MiningLadderConfiguration> context) {
+    public boolean place(FeaturePlaceContext<MineLadderConfig> context) {
         final WorldGenLevel level = context.level();
-        final BlockPos blockPos = context.origin();
-        final MiningLadderConfiguration config = context.config();
-        final int topY = blockPos.getY();
+        final BlockPos startPos = context.origin();
+        final int startY = startPos.getY();
+        final MineLadderConfig config = context.config();
+        int topY = startY;
 
-        if(level.isEmptyBlock(blockPos)
-            && level.isEmptyBlock(blockPos.atY(topY+1))
-            && level.isEmptyBlock(blockPos.atY(topY+2))
+        if(level.isEmptyBlock(startPos)
+            && level.isEmptyBlock(startPos.atY(topY+1))
+            && level.isEmptyBlock(startPos.atY(topY+2))
         ){
             for(Direction direction : Direction.values()){//the direction is the facing of climbable
                 if(direction == Direction.DOWN || direction == Direction.UP) continue;
 
-                final BlockPos topPlatformPos = blockPos.relative(direction.getOpposite());
-                final BlockState topPlatformBlock = level.getBlockState(topPlatformPos);
-                if(!topPlatformBlock.isFaceSturdy(level,topPlatformPos,direction)
-                    || !level.isEmptyBlock(topPlatformPos.atY(topY+2))) continue;
+                final BlockPos originRely = startPos.relative(direction.getOpposite());
 
-                final List<BlockPos> toPlace = new ArrayList<>();
-                //add a ladder to let top of ladder 'grab' the edge of a cliff.
-                if(!level.isEmptyBlock(topPlatformPos.atY(topY+1))) toPlace.add(blockPos.atY(topY+1));
+                final BlockPos.MutableBlockPos ladderPos = new BlockPos.MutableBlockPos(startPos.getX(),topY,startPos.getZ());
+                final BlockPos.MutableBlockPos top = new BlockPos.MutableBlockPos(originRely.getX(),topY,originRely.getZ());
+                final IntPredicate noBlockingOnTop = y -> level.isEmptyBlock(top.relative(Direction.UP,y));
+                final BooleanSupplier isTopWalkable = ()-> (noBlockingOnTop.test(1) || noBlockingOnTop.test(3)) && noBlockingOnTop.test(2);
 
-                int ladderY;
-                boolean isHanging = false;
-                for(ladderY = topY; level.isEmptyBlock(blockPos.atY(ladderY)); ladderY--){
-                    toPlace.add(blockPos.atY(ladderY));
-                    if(level.getBlockState(topPlatformPos.atY(ladderY))
-                            .isFaceSturdy(level,
-                                    topPlatformPos.atY(ladderY),
-                                    direction.getOpposite())){
-                        isHanging = true;
+                //Climb up
+                if(config.climbable()){
+                    boolean blocked = false;
+                    while (!isTopWalkable.getAsBoolean()){
+                        ladderPos.move(0,1,0);
+                        if(!level.isEmptyBlock(ladderPos) || //and the condition the ladder hang on
+                                !config.hangable() && noBlockingOnTop.test(1)){
+                            blocked = true;
+                            ladderPos.move(0,-1,0);//optional,,
+                            break;
+                        }
+                        top.move(0,1,0);
+                        topY++;
+                        if(topY>level.getMaxBuildHeight()) throw new IllegalStateException("The ladder has climbed too high!");
                     }
+                    if(blocked || !level.isEmptyBlock(ladderPos.atY(topY+1)) || !level.isEmptyBlock(ladderPos.atY(topY+2))) continue;
+                    if(config.lengthInclude()==CLIMB && (topY-startY>config.maxLength() || topY-startY<config.minLength())) continue;
+                }
+                if(!isTopWalkable.getAsBoolean()) continue;
+
+                final BlockState topPlatformBlock = level.getBlockState(top);
+                if(!topPlatformBlock.isFaceSturdy(level,top,direction)) continue;
+
+                int len = 0;
+
+                // 1) 预扫长度 + 支撑判定
+                while ((config.lengthInclude()==BOTH ? len <= config.maxLength() : (//len means CLIMB + DROP = BOTH length
+                        config.lengthInclude() != DROP || startY - ladderPos.getY() <= config.maxLength()
+                        ))//Priority of alg
+                        && level.isEmptyBlock(ladderPos)) {
+                    ladderPos.move(0, -1, 0);
+                    len++;
+                }
+                if (len < config.minLength()) continue;//DROP <= BOTH = len
+                // baseY 为第一块非空气
+                int baseY = ladderPos.getY();
+                BlockPos basePos = startPos.atY(baseY);
+                BlockState basePlatform = level.getBlockState(basePos);
+
+                // 2) 基座判定
+                boolean okBase = basePlatform.isFaceSturdy(level, basePos, Direction.UP) || isWalkable(basePlatform, basePos, level, direction);
+                if (!okBase) continue;
+
+                // 3) 侧面支撑扫描（任一高度有支撑即非悬挂）//only scan startY->baseY as startY->topY has been checked
+                BlockPos.MutableBlockPos behindPos = new BlockPos.MutableBlockPos(startPos.getX(),startY,startPos.getZ());
+                boolean isHanging = false;
+                for(int y=startY; y> baseY; y--){
+                    behindPos.move(0,-1,0);
+                    if(!level.getBlockState(behindPos).isFaceSturdy(level,behindPos,direction)) isHanging = true;
                 }
                 if(isHanging && !config.hangable()) continue;
 
-                BlockPos basePos = blockPos.atY(ladderY-1);
-                BlockState basePlatform = level.getBlockState(basePos);
-                if(toPlace.size() < config.minLength() || toPlace.size() > config.maxLength()) continue;
-                if(basePlatform.isFaceSturdy(level,basePos,Direction.UP) || isWalkable(basePlatform,basePos,level,direction)){
-                    //doPlace
-                    toPlace.forEach(//place ladder blocks in toPlace pos. ------------------------------- //set flags param to 0 so that block update will not trigger
-                            pos-> level.setBlock(pos,Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING,direction),0)
-                    );
-                    return true;
+                // 4) 生成放置列表
+                final List<BlockPos> toPlace = new ArrayList<>(len);
+                for (int y = topY; y >= baseY + 1; y--) toPlace.add(new BlockPos(startPos.getX(), y, startPos.getZ()));
+
+                for (BlockPos p : toPlace) {//set ladders, the flag param is set to 0 so that block update will not be triggered.
+                    level.setBlock(p, Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, direction), 0);
                 }
+                return true;
             }
         }
         return false;
     }
 
+    /**Check whether player can climb the ladder from the base platform
+     * @param state of base platform block
+     * @param pos of base platform block
+     * @param level world level
+     * @param ladderDir the direction of the ladder(facing). Reserver this param for future optimistic.
+     * @return true for player can walk on
+     */
     private boolean isWalkable(BlockState state, BlockPos pos, BlockGetter level, Direction ladderDir){
-        VoxelShape shape = state.getCollisionShape(level, pos);
-        if (!shape.isEmpty()) {
-            double maxY = shape.max(Direction.Axis.Y);
-            return maxY <= 1.25;
-        }
-        return false;
+        if (state.isAir() || !state.getFluidState().isEmpty()) return false;
+        if (state.isFaceSturdy(level, pos, Direction.UP)) return true;
+        double h = state.getCollisionShape(level, pos).max(Direction.Axis.Y);
+        return h >= 0.5 && h <= 1.25; // 允许半砖~满砖的平台
     }
-
-
 }

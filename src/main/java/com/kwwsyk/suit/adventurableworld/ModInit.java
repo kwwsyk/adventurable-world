@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 public class ModInit {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "adventure_suit";
+
+    public static final long TEST_SEED = 4717592338724498842L;
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 

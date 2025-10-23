@@ -44,7 +44,7 @@ public class PlacedFeatures {
                     bootstrap.register(
                             SIMPLE_LADDER_PLACE,new PlacedFeature(
                                     holderGetter.getOrThrow(ConfiguredFeatures.SIMPLE_LADDER_CONFIG),
-                                    placement(127, 2, 128)
+                                    placementEveryLayer(255)
                         )
                     );
                     bootstrap.register(
@@ -79,10 +79,16 @@ public class PlacedFeatures {
         return List.of(
                 CountPlacement.of(count),
                 InSquarePlacement.spread(),
-                //CountOnEveryLayerPlacement.of(8),
                 HeightRangePlacement.uniform(
                         VerticalAnchor.aboveBottom(minAbove),
                         VerticalAnchor.aboveBottom(maxAbove)),
+                BiomeFilter.biome()
+        );
+    }
+
+    public static List<PlacementModifier> placementEveryLayer(int count) {
+        return List.of(
+                CountOnEveryLayerPlacement.of(count), // 0..256
                 BiomeFilter.biome()
         );
     }
