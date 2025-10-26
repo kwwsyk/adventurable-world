@@ -39,6 +39,14 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
         this.tooltip = null;
     }
 
+    /**
+     * @return optional tooltip displayed when the entry is hovered, or {@code null} when no tooltip is available.
+     */
+    @Nullable
+    public List<FormattedCharSequence> tooltip() {
+        return this.tooltip;
+    }
+
     public static class EmptySpaceEntry extends OptionEntry {
         public EmptySpaceEntry(OptionScreen screen) {super(screen);}
         @Override
@@ -86,6 +94,15 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
 
         public ConfigEntry(OptionScreen screen, @org.jetbrains.annotations.Nullable List<FormattedCharSequence> tooltip) {
             super(screen, tooltip);
+        }
+
+        /**
+         * Sets the label rendered to the left of the entry's widget collection.
+         *
+         * @param label display component.
+         */
+        public void setLabel(Component label) {
+            this.label = label;
         }
 
         @Override
