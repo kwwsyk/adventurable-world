@@ -1,17 +1,15 @@
 package com.kwwsyk.suit.adventurableworld.client;
 
+import com.kwwsyk.suit.adventurableworld.client.codec.MineLadderOptionScreen;
+import com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 
-public class AdvOptionScreen extends Screen{
+/**
+ * Entry point screen that opens the codec driven editor using default ladder configuration values.
+ */
+public class AdvOptionScreen extends MineLadderOptionScreen {
 
-    private static final Component title = Component.translatable("adv_option.title");
-
-    /**
-     */
     public AdvOptionScreen(Screen lastScreen) {
-        super(title);
+        super(lastScreen, MineLadderConfig.defaults());
     }
-
-
 }

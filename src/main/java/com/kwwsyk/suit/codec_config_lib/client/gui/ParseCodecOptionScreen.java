@@ -1,12 +1,17 @@
 package com.kwwsyk.suit.codec_config_lib.client.gui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.Objects;
+
 /**
- *
+ * Base class for screens that render codec-backed configuration options. The implementation
+ * delegates layout concerns to {@link OptionScreen} while retaining a reference to the parent
+ * screen so concrete subclasses can return to it when closing.
  */
-public class ParseCodecOptionScreen extends Screen {
+public abstract class ParseCodecOptionScreen extends OptionScreen {
 
     /// Referables:
     /// @see net.neoforged.neoforge.client.gui.ConfigurationScreen
@@ -17,7 +22,7 @@ public class ParseCodecOptionScreen extends Screen {
     public final Screen lastScreen;
 
     protected ParseCodecOptionScreen(Screen lastScreen, Component title) {
-        super(title);
-        this.lastScreen = lastScreen;
+        super(title, () -> Minecraft.getInstance().setScreen(lastScreen));
+        this.lastScreen = Objects.requireNonNull(lastScreen, "lastScreen");
     }
 }
