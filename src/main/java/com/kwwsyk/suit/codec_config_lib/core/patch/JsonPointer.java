@@ -49,7 +49,7 @@ public final class JsonPointer {
             ValuePath.Segment next = segments.get(i + 1);
             cursor = descend(cursor, segment, next);
         }
-        ValuePath.Segment last = segments.get(segments.size() - 1);
+        ValuePath.Segment last = segments.getLast();
         apply(cursor, last, payload);
     }
 

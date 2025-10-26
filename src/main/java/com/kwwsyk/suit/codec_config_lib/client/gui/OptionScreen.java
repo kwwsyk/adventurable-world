@@ -10,7 +10,6 @@ import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedCharSequence;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -49,16 +48,16 @@ public class OptionScreen extends Screen {
     protected void init() {
         this.clearWidgets();
         if (this.optionList == null) {
-            this.layout.addTitleHeader(this.title);
+            this.layout.addTitleHeader(this.title, this.getMinecraft().font);
             this.optionList = this.layout.addToContents(new OptionList());
-            this.optionList.setRenderBackground(false);
+            //this.optionList.setRenderBackground(false);
             this.doneButton = Button.builder(CommonComponents.GUI_DONE, button -> this.onDone()).build();
             this.layout.addToFooter(this.doneButton);
             this.layout.addToFooter(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build());
         }
         this.layout.visitWidgets(this::addRenderableWidget);
         OptionList list = this.optionList();
-        list.clearEntries();
+        //list.clearEntries();
         this.populateOptions(list);
         this.repositionElements();
     }
@@ -67,7 +66,7 @@ public class OptionScreen extends Screen {
     protected void repositionElements() {
         this.layout.arrangeElements();
         if (this.optionList != null) {
-            this.optionList.updateSize(this.width, this.layout.getContentHeight(), this.layout.getHeaderHeight(), this.layout.getHeaderHeight() + this.layout.getContentHeight());
+            this.optionList.updateSize(this.width, this.layout);
         }
     }
 
@@ -113,12 +112,12 @@ public class OptionScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
         if (this.optionList != null) {
             this.optionList.render(guiGraphics, mouseX, mouseY, partialTick);
         }
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        if (this.optionList != null) {
+
+        /*if (this.optionList != null) {
             OptionEntry hovered = this.optionList.getHovered();
             if (hovered != null) {
                 List<FormattedCharSequence> tooltip = hovered.tooltip();
@@ -126,7 +125,7 @@ public class OptionScreen extends Screen {
                     guiGraphics.renderTooltip(this.font, tooltip, mouseX, mouseY);
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -144,11 +143,11 @@ public class OptionScreen extends Screen {
                     OptionScreen.this.layout.getHeaderHeight(),
                     DEFAULT_ENTRY_HEIGHT
             );
-            this.setRenderTopAndBottom(false);
+            //this.setRenderTopAndBottom(false);
         }
 
         /**
-         * Convenience helper mirroring {@link #replaceEntries(List)} but using a more generic input collection.
+         * Convenience helper mirroring {@link net.minecraft.client.gui.components.AbstractSelectionList#replaceEntries} but using a more generic input collection.
          *
          * @param entries collection of new rows.
          */

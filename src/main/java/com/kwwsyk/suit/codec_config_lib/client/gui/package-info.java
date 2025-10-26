@@ -1,0 +1,6 @@
+@ParametersAreNonnullByDefault@MethodsReturnNonnullByDefault
+package com.kwwsyk.suit.codec_config_lib.client.gui;
+
+import net.minecraft.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

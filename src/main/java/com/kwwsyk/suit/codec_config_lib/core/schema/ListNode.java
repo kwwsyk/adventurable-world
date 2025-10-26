@@ -22,7 +22,7 @@ public final class ListNode extends Node {
                     List<Node> elements) {
         super(path, NodeKind.LIST, defaultValue, lifecycle);
         Objects.requireNonNull(elements, "elements");
-        this.elements = Collections.unmodifiableList(new ArrayList<>(elements));
+        this.elements = List.copyOf(elements);
     }
 
     /**
