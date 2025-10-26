@@ -24,6 +24,13 @@ public record MineLadderConfig(
     );
 
     /**
+     * @return default configuration used when opening the codec editor.
+     */
+    public static MineLadderConfig defaults() {
+        return new MineLadderConfig(false, 4, 24, true, LengthInclude.BOTH);
+    }
+
+    /**
      * Count the length of a ladder
      */
     public enum LengthInclude implements StringRepresentable {
