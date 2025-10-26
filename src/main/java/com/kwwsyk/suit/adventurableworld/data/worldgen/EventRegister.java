@@ -1,7 +1,6 @@
 package com.kwwsyk.suit.adventurableworld.data.worldgen;
 
 import com.kwwsyk.suit.adventurableworld.data.worldgen.providers.ModDatapackProvider;
-import com.kwwsyk.suit.adventurableworld.worldgen.feature.FeaturesReg;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.data.DataGenerator;
