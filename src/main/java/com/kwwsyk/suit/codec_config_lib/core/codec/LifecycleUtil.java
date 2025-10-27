@@ -19,6 +19,6 @@ public final class LifecycleUtil {
      * @return lifecycle associated with the result.
      */
     public static Lifecycle lifecycleOrStable(DataResult<?> result) {
-        return result.lifecycle().orElse(Lifecycle.stable());
+        return result.lifecycle();
     }
 }

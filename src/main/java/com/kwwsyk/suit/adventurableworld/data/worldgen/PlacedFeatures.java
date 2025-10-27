@@ -5,11 +5,9 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.world.level.levelgen.placement.*;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
-import java.util.List;
 
 public class PlacedFeatures {
 
@@ -41,55 +39,33 @@ public class PlacedFeatures {
                     ///     minAbove = minAboveBottomPredicted + minLengthConfigured
                     ///     minAbove(absolute) = minAboveBottomPredicted + maxLengthConfigured
                     ///     maxAbove = maxAboveBottomPredicted
+                    WorldgenSettings settings = WorldgenSettingsManager.get();
+
                     bootstrap.register(
                             SIMPLE_LADDER_PLACE,new PlacedFeature(
                                     holderGetter.getOrThrow(ConfiguredFeatures.SIMPLE_LADDER_CONFIG),
-                                    placementEveryLayer(255)
+                                    settings.simplePlacement().createModifiers()
                         )
                     );
                     bootstrap.register(
                             SHORT_LADDER_PLACE,new PlacedFeature(
                                     holderGetter.getOrThrow(ConfiguredFeatures.SHORT_LADDER_CONFIG),
-                                    placement(255, 2, 128)
+                                    settings.shortPlacement().createModifiers()
                         )
                     );
                     bootstrap.register(
                             LONG_LADDER_PLACE,new PlacedFeature(
                                     holderGetter.getOrThrow(ConfiguredFeatures.LONG_LADDER_CONFIG),
-                                    placement(127,2,128)
+                                    settings.longPlacement().createModifiers()
                             )
                     );
                     bootstrap.register(
                             HIGH_LADDER_PLACE,new PlacedFeature(
                                     holderGetter.getOrThrow(ConfiguredFeatures.LONG_LADDER_CONFIG),
-                                    placement(127,130,192)
+                                    settings.highPlacement().createModifiers()
                             )
                     );
                 }
-        );
-    }
-
-    /**
-     * @param count [0,256]
-     * @param minAbove min height above world bottom
-     * @param maxAbove max height above world bottom
-     * @return default PlacementModifiers for use of ladders
-     */
-    public static List<PlacementModifier> placement(int count, int minAbove, int maxAbove){
-        return List.of(
-                CountPlacement.of(count),
-                InSquarePlacement.spread(),
-                HeightRangePlacement.uniform(
-                        VerticalAnchor.aboveBottom(minAbove),
-                        VerticalAnchor.aboveBottom(maxAbove)),
-                BiomeFilter.biome()
-        );
-    }
-
-    public static List<PlacementModifier> placementEveryLayer(int count) {
-        return List.of(
-                CountOnEveryLayerPlacement.of(count), // 0..256
-                BiomeFilter.biome()
         );
     }
 }
