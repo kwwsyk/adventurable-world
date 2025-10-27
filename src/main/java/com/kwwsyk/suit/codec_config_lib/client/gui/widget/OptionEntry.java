@@ -24,6 +24,7 @@ import net.minecraft.util.FormattedCharSequence;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<OptionEntry> {
@@ -295,18 +296,20 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
     }
     public static class StringEntry extends EditBoxConfigEntry<String>{
 
-        @Nullable
-        Runnable onValueChanged;
-        Predicate<String> validator = v -> true;
+        private final Consumer<String> onValueChanged;
+        private final Predicate<String> validator;
 
         public StringEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
                            String defaultValue,
                            Predicate<String> validator,
-                           @Nullable CycleButton.OnValueChange<String> onValueChange
+                           @Nullable Consumer<String> onValueChanged
         ) {
             super(screen, label, tooltip);
-            editBox.setValue(defaultValue);
+            this.validator = validator != null ? validator : v -> true;
+            this.onValueChanged = onValueChanged != null ? onValueChanged : value -> {};
+            this.editBox.setValue(defaultValue);
             this.value = defaultValue;
+            this.parsedValue = defaultValue;
         }
 
         /**
@@ -314,44 +317,43 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
          */
         @Override
         public void onValueChanged() {
-            if (onValueChanged != null) {
-                onValueChanged.run();
-            }
+            this.onValueChanged.accept(this.parsedValue);
         }
 
         @Override
-        public String parseValue(String value) throws Exception {
+        public String parseValue(String value) {
             return value;
         }
 
         @Override
         public boolean testValue(String value) {
-            return validator.test(value);
+            return this.validator.test(value);
         }
 
         @Override
         public void callbackOnUnexpectedValue(String newValue, String oldValue) {
-            editBox.setValue(oldValue);
+            this.editBox.setValue(oldValue);
         }
 
         @Override
-        public void callbackOnInvalidValue(String newValue, String oldValue, @org.jetbrains.annotations.Nullable Exception e) {}
+        public void callbackOnInvalidValue(String newValue, String oldValue, @org.jetbrains.annotations.Nullable Exception e) {
+            this.editBox.setValue(oldValue);
+        }
     }
     public abstract static class NumberEntry<N extends Number> extends EditBoxConfigEntry<N>{
 
         final Number defaultValue;
         final Constraints constraints;
-        @Nullable
-        Runnable onValueChanged;
+        private final Consumer<N> onValueChanged;
         N clampedValue;
 
         public NumberEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
                            Number defaultValue, Constraints constraints,
-                           @Nullable Runnable onValueChanged) {
+                           @Nullable Consumer<N> onValueChanged) {
             super(screen, label, tooltip);
             this.defaultValue = defaultValue;
             this.constraints = constraints;
-            this.onValueChanged = onValueChanged;
+            this.onValueChanged = onValueChanged != null ? onValueChanged : value -> {};
         }
 
         @Override
@@ -374,27 +376,29 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
          */
         @Override
         public void onValueChanged() {
-            if(onValueChanged != null){
-                onValueChanged.run();
-            }
+            this.onValueChanged.accept(this.parsedValue);
         }
 
         @Override
         public void callbackOnUnexpectedValue(String newValue, String oldValue) {
-            editBox.setValue(String.valueOf(clampedValue));
+            this.editBox.setValue(String.valueOf(this.clampedValue));
         }
 
         @Override
         public void callbackOnInvalidValue(String newValue, String oldValue,@Nullable Exception e) {
-            editBox.setValue(oldValue);
+            this.editBox.setValue(oldValue);
         }
     }
     public static class IntEntry extends NumberEntry<Integer>{
 
         public IntEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
-                       int defaultValue, Constraints constraints, @Nullable Runnable onValueChanged
+                        int defaultValue, Constraints constraints, @Nullable Consumer<Integer> onValueChanged
         ) {
             super(screen, label, tooltip, defaultValue, constraints, onValueChanged);
+            this.clampedValue = constraints.clamp(defaultValue);
+            this.parsedValue = defaultValue;
+            this.value = String.valueOf(defaultValue);
+            this.editBox.setValue(this.value);
         }
 
         @Override
@@ -410,9 +414,13 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
     }
     public static class FloatEntry extends NumberEntry<Float>{
         public FloatEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
-                         float defaultValue, Constraints constraints, @Nullable Runnable onValueChanged
+                          float defaultValue, Constraints constraints, @Nullable Consumer<Float> onValueChanged
         ) {
             super(screen, label, tooltip, defaultValue, constraints, onValueChanged);
+            this.clampedValue = constraints.clamp(defaultValue);
+            this.parsedValue = defaultValue;
+            this.value = String.valueOf(defaultValue);
+            this.editBox.setValue(this.value);
         }
         @Override
         public Float parseValue(String value) throws NumberFormatException {
@@ -426,9 +434,13 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
     }
     public static class DoubleEntry extends NumberEntry<Double>{
         public DoubleEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
-                          double defaultValue, Constraints constraints, @Nullable Runnable onValueChanged
+                           double defaultValue, Constraints constraints, @Nullable Consumer<Double> onValueChanged
         ) {
             super(screen, label, tooltip, defaultValue, constraints, onValueChanged);
+            this.clampedValue = constraints.clamp(defaultValue);
+            this.parsedValue = defaultValue;
+            this.value = String.valueOf(defaultValue);
+            this.editBox.setValue(this.value);
         }
         @Override
         public Double parseValue(String value) throws NumberFormatException {
@@ -442,9 +454,13 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
     }
     public static class LongEntry extends NumberEntry<Long>{
         public LongEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
-                        long defaultValue, Constraints constraints, @Nullable Runnable onValueChanged
+                         long defaultValue, Constraints constraints, @Nullable Consumer<Long> onValueChanged
         ) {
             super(screen, label, tooltip, defaultValue, constraints, onValueChanged);
+            this.clampedValue = constraints.clamp(defaultValue);
+            this.parsedValue = defaultValue;
+            this.value = String.valueOf(defaultValue);
+            this.editBox.setValue(this.value);
         }
         @Override
         public Long parseValue(String value) throws NumberFormatException {

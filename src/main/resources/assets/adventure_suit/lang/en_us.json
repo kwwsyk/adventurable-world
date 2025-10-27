@@ -1,5 +1,22 @@
 {
   "itemGroup.adventure_suit": "Example Mod Tab",
   "block.adventure_suit.example_block": "Example Block",
-  "item.adventure_suit.example_item": "Example Item"
+  "item.adventure_suit.example_item": "Example Item",
+  "adv_option.title": "Adventurable Options",
+  "adv_option.codec.lifecycle": "Codec lifecycle: %s",
+  "adv_option.codec.error": "Codec error: %s",
+  "adv_option.codec.schema_missing": "Codec schema could not be generated.",
+  "adv_option.codec.preview": "Patched JSON preview",
+  "adv_option.codec.unsupported": "%s nodes are not supported at %s",
+  "adv_option.mine_ladder.root": "Mine Ladder",
+  "adv_option.mine_ladder.hangable": "Hangable",
+  "adv_option.mine_ladder.min_length": "Minimum length",
+  "adv_option.mine_ladder.max_length": "Maximum length",
+  "adv_option.mine_ladder.climbable": "Climbable",
+  "adv_option.mine_ladder.length_include": "Length counting mode",
+  "adv_option.mine_ladder.length_include.drop": "Drop",
+  "adv_option.mine_ladder.length_include.climb": "Climb",
+  "adv_option.mine_ladder.length_include.both": "Both",
+  "adv_option.mine_ladder.min_length.tooltip": "Minimum number of ladder blocks.",
+  "adv_option.mine_ladder.max_length.tooltip": "Maximum number of ladder blocks."
 }
