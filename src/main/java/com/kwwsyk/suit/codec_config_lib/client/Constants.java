@@ -10,5 +10,5 @@ public final class Constants {
     /**
      * Default width in pixels reserved for option controls inside {@code OptionScreen} rows.
      */
-    public static final int DEFAULT_CONTROL_WIDTH = 140;
+    public static final int DEFAULT_CONTROL_WIDTH = 65;
 }

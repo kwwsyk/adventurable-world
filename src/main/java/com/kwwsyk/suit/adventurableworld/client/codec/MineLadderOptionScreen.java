@@ -20,6 +20,7 @@ import com.kwwsyk.suit.codec_config_lib.core.schema.*;
 import com.kwwsyk.suit.codec_config_lib.client.gui.test.ScreenDebug;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
+import it.unimi.dsi.fastutil.booleans.Boolean2ObjectFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.CycleButton;
@@ -29,6 +30,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
@@ -41,6 +43,11 @@ import net.minecraft.client.gui.narration.NarratableEntry;
  * applies them through {@link CodecConfigApi} and displays a preview of the patched JSON payload.
  */
 public class MineLadderOptionScreen extends ParseCodecOptionScreen {
+    ///todo The user-side class does a lot what should be done by codec_option_lib:
+    /// @see #initialiseProviders(): better let OptionEntry and its subclasses to provide easy-to-use ConfigEntries
+    ///todo many of Codec types are unsupported, add them as extends of ConfigEntry
+    /// @see OptionEntry.NumberEntry extend exist NumberConfigEntry and its subclasses
+    ///
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -88,20 +95,14 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
                 if (leaf.kind() == NodeKind.BOOL) {
                     BaseTypeOption option = (screen, hint, codec) -> {
                         boolean defaultValue = leaf.defaultValue().getAsBoolean();
-                        CycleButton<Boolean> button = CycleButton.builder(value -> value ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF)
-                                .withValues(Boolean.TRUE, Boolean.FALSE)
-                                .withInitialValue(defaultValue)
-                                .create(0, 0, Constants.DEFAULT_CONTROL_WIDTH, 20, CommonComponents.EMPTY, (cycleButton, value) -> {
-                                    if (value == defaultValue) {
-                                        edits.remove(node.path());
-                                    } else {
-                                        edits.put(node.path(), value);
-                                    }
-                                    refreshPreview();
-                                });
-                        OptionEntry.BooleanConfigEntry entry = new OptionEntry.BooleanConfigEntry(MineLadderOptionScreen.this, hint, button);
-                        entry.setLabel(labelFor(key));
-                        return entry;
+                        return new OptionEntry.BooleanConfigEntry(MineLadderOptionScreen.this, labelFor(key), hint, defaultValue, (cycleButton, value) -> {
+                            if (value == defaultValue) {
+                                edits.remove(node.path());
+                            } else {
+                                edits.put(node.path(), value);
+                            }
+                            refreshPreview();
+                        });
                     };
                     return Optional.of(option.createEntry(MineLadderOptionScreen.this, tooltip, MapCodec.unit(leaf.defaultValue().getAsBoolean())));
                 }
@@ -109,9 +110,7 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
                     BaseTypeOption option = (screen, hint, codec) -> {
                         int defaultValue = leaf.defaultValue().getAsInt();
                         Constraints constraint = constraints.getOrDefault(key, new Constraints(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
-                        NumberEntry entry = new NumberEntry(MineLadderOptionScreen.this, hint, defaultValue, node.path(), constraint);
-                        entry.setLabel(labelFor(key));
-                        return entry;
+                        return new NumberEntry(MineLadderOptionScreen.this, labelFor(key), hint, defaultValue, node.path(), constraint);
                     };
                     return Optional.of(option.createEntry(MineLadderOptionScreen.this, tooltip, MapCodec.unit(leaf.defaultValue().getAsInt())));
                 }
@@ -129,9 +128,7 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
                                     }
                                     refreshPreview();
                                 });
-                        OptionEntry.CycleButtonConfigEntry<MineLadderConfig.LengthInclude> entry = new OptionEntry.CycleButtonConfigEntry<>(MineLadderOptionScreen.this, hint, button);
-                        entry.setLabel(labelFor(key));
-                        return entry;
+                        return new OptionEntry.CycleButtonConfigEntry<>(MineLadderOptionScreen.this, labelFor(key), hint, button);
                     };
                     return Optional.of(option.createEntry(MineLadderOptionScreen.this, tooltip, MapCodec.unit(leaf.defaultValue().getAsString())));
                 }
@@ -241,9 +238,7 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
     }
 
     private List<FormattedCharSequence> tooltipFor(Node node) {
-        return node.defaultValue() != null
-                ? ImmutableList.of(Component.literal(node.defaultValue().toString()).getVisualOrderText())
-                : List.of();
+        return ImmutableList.of(Component.literal(node.defaultValue().toString()).getVisualOrderText());
     }
 
     private List<FormattedCharSequence> groupTooltip(GroupNode group) {
@@ -301,7 +296,7 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
         if (segments.isEmpty()) {
             return "root";
         }
-        ValuePath.Segment segment = segments.get(segments.size() - 1);
+        ValuePath.Segment segment = segments.getLast();
         return segment.isKey() ? segment.key() : String.valueOf(segment.index());
     }
 
@@ -318,7 +313,6 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawString(font, lifecycleStatus, 20, height - 55, 0xFFFFFF, false);
         guiGraphics.drawString(font, errorStatus, 20, height - 42, 0xFF8888, false);
-        ScreenDebug.debugInfo(this, guiGraphics, mouseX, mouseY);
     }
 
     private final class JsonPreviewEntry extends OptionEntry {
@@ -362,8 +356,8 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
         private final Constraints constraints;
         private final int defaultValue;
 
-        NumberEntry(OptionScreen screen, List<FormattedCharSequence> tooltip, int defaultValue, ValuePath path, Constraints constraints) {
-            super(screen, tooltip);
+        NumberEntry(OptionScreen screen, Component label, List<FormattedCharSequence> tooltip, int defaultValue, ValuePath path, Constraints constraints) {
+            super(screen, label, tooltip);
             this.path = path;
             this.constraints = constraints;
             this.defaultValue = defaultValue;
@@ -381,16 +375,9 @@ public class MineLadderOptionScreen extends ParseCodecOptionScreen {
             }
             try {
                 int parsed = Integer.parseInt(value);
-                constraints.min().map(Number::intValue).ifPresent(min -> {
-                    if (parsed < min) {
-                        parsed = min;
-                    }
-                });
-                constraints.max().map(Number::intValue).ifPresent(max -> {
-                    if (parsed > max) {
-                        parsed = max;
-                    }
-                });
+                int min = constraints.min().map(Number::intValue).orElse(Integer.MIN_VALUE);
+                int max = constraints.max().map(Number::intValue).orElse(Integer.MAX_VALUE);
+                parsed = Mth.clamp(parsed, min, max);
                 if (parsed == defaultValue) {
                     edits.remove(path);
                 } else {

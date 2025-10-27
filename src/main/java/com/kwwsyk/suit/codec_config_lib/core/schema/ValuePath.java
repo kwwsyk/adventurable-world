@@ -1,5 +1,6 @@
 package com.kwwsyk.suit.codec_config_lib.core.schema;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -118,7 +119,7 @@ public final class ValuePath implements Iterable<ValuePath.Segment> {
         private final String key;
         private final Integer index;
 
-        private Segment(String key, Integer index) {
+        private Segment(@Nullable String key,@Nullable Integer index) {
             this.key = key;
             this.index = index;
         }
@@ -161,6 +162,7 @@ public final class ValuePath implements Iterable<ValuePath.Segment> {
         /**
          * @return segment key if present, otherwise {@code null}.
          */
+        @Nullable
         public String key() {
             return key;
         }
@@ -168,6 +170,7 @@ public final class ValuePath implements Iterable<ValuePath.Segment> {
         /**
          * @return segment index if present, otherwise {@code null}.
          */
+        @Nullable
         public Integer index() {
             return index;
         }

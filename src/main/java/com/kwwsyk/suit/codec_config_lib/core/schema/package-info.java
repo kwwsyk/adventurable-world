@@ -1,0 +1,6 @@
+@ParametersAreNonnullByDefault@MethodsReturnNonnullByDefault
+package com.kwwsyk.suit.codec_config_lib.core.schema;
+
+import net.minecraft.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;
