@@ -3,6 +3,7 @@ package com.kwwsyk.suit.adventurableworld.client;
 import com.kwwsyk.suit.adventurableworld.ModInit;
 import com.kwwsyk.suit.adventurableworld.client.codec.WorldgenOptionScreen;
 import com.kwwsyk.suit.adventurableworld.mixin.client.CreateWorldScreenAccessor;
+import com.kwwsyk.suit.adventurableworld.mixin.client.CreateWorldScreenMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -19,7 +20,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 
 @EventBusSubscriber(modid = ModInit.MODID, value = Dist.CLIENT)
-public final class ClientEvents {
+public final class ClientEvents {//todo BUG: switch to World & More tab will not disable or hide EXT gameModeButton
 
     private ClientEvents() {
     }
@@ -31,18 +32,14 @@ public final class ClientEvents {
         }
 
         WorldCreationUiState uiState = ((CreateWorldScreenAccessor) screen).adventure_suit$getUiState();
-        CycleButton<?> vanillaButton = ((CreateWorldScreenAccessor) screen).adventure_suit$getGameModeButton();
 
-        AbstractWidget reference = vanillaButton;
-        if (vanillaButton != null) {
-            vanillaButton.visible = false;
-            vanillaButton.active = false;
-        } else {
-            reference = event.getListenersList().stream()
-                    .filter(widget -> widget instanceof CycleButton<?> cycle && cycle.getMessage().getString().contains("Game Mode"))
-                    .findFirst()
-                    .orElse(null);
-        }
+        AbstractWidget reference = (AbstractWidget) event.getListenersList().stream()
+                .filter(widget -> widget instanceof CycleButton<?> cycle && cycle.getMessage().getString().contains("Game Mode"))
+                .findFirst()
+                .orElse(null);
+
+        if(reference!=null)
+            event.removeListener(reference);
 
         int x = reference != null ? reference.getX() : screen.width / 2 - 155;
         int y = reference != null ? reference.getY() : 100;
@@ -52,12 +49,17 @@ public final class ClientEvents {
         CycleButton<ExtendedGameMode> gameModeButton = CycleButton.<ExtendedGameMode>builder(ExtendedGameMode::title)
                 .withValues(ExtendedGameMode.values())
                 .withInitialValue(initial)
-                .withCustomNarration(value -> value.title())
+                .withCustomNarration(CycleButton::createDefaultNarrationMessage)
                 .displayOnlyValue()
-                .create(x, y, reference != null ? reference.getWidth() : 150, reference != null ? reference.getHeight() : 20, Component.translatable("selectWorld.gameMode"), (button, value) -> applyGameMode(uiState, value));
+                .create(x, y,
+                        reference != null ? reference.getWidth() : 150,
+                        reference != null ? reference.getHeight() : 20,
+                        Component.translatable("selectWorld.gameMode"),
+                        (button, value) -> applyGameMode(uiState, value, screen)
+                );
 
         gameModeButton.setTooltip(Tooltip.create(Component.translatable("adv_option.worldgen.adventure.tooltip")));
-        applyGameMode(uiState, initial);
+        //applyGameMode(uiState, initial);
         event.addListener(gameModeButton);
 
         int buttonX = x + (reference != null ? reference.getWidth() + 5 : 155);
@@ -67,21 +69,28 @@ public final class ClientEvents {
         event.addListener(optionsButton);
     }
 
-    private static void applyGameMode(WorldCreationUiState uiState, ExtendedGameMode mode) {
-        uiState.setGameMode(mode.gameType());
-        uiState.setHardcore(mode.hardcore());
-        uiState.setAllowCheats(mode.allowCheats());
+    private static void applyGameMode(WorldCreationUiState uiState, ExtendedGameMode mode, CreateWorldScreen screen) {
+        uiState.setGameMode(switch (mode){
+            case CREATIVE -> WorldCreationUiState.SelectedGameMode.CREATIVE;
+            case HARDCORE -> WorldCreationUiState.SelectedGameMode.HARDCORE;
+            default -> WorldCreationUiState.SelectedGameMode.SURVIVAL;
+        });
+        if (screen instanceof CreateWorldScreenExt ext) {
+            ext.adventure_suit$setGameMode(mode);
+        }
+        uiState.setAllowCommands(mode.allowCheats());
     }
 
     private static void openOptions(Screen parent) {
         Minecraft.getInstance().setScreen(new AdvOptionScreen(parent));
     }
 
-    private enum ExtendedGameMode {
+    public enum ExtendedGameMode {
         SURVIVAL(Component.translatable("selectWorld.gameMode.survival"), GameType.SURVIVAL, false, false),
+        ADVENTURE(Component.translatable("adv_option.worldgen.adventure"), GameType.ADVENTURE, false, false),
         HARDCORE(Component.translatable("selectWorld.gameMode.hardcore"), GameType.SURVIVAL, true, false),
-        CREATIVE(Component.translatable("selectWorld.gameMode.creative"), GameType.CREATIVE, false, true),
-        ADVENTURE(Component.translatable("adv_option.worldgen.adventure"), GameType.ADVENTURE, false, false);
+        CREATIVE(Component.translatable("selectWorld.gameMode.creative"), GameType.CREATIVE, false, true);
+
 
         private final Component title;
         private final GameType gameType;
@@ -116,9 +125,8 @@ public final class ClientEvents {
                 return HARDCORE;
             }
 
-            GameType current = uiState.getGameMode();
+            WorldCreationUiState.SelectedGameMode current = uiState.getGameMode();
             return switch (current) {
-                case ADVENTURE -> ADVENTURE;
                 case CREATIVE -> CREATIVE;
                 default -> SURVIVAL;
             };

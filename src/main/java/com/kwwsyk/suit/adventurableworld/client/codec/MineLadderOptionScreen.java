@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * Thin wrapper around {@link CodecOptionScreen} that wires the ladder configuration into the generic
- * codec driven UI. All domain specific behaviour is handled through the builder, keeping the class
+ * codec-driven UI. All domain-specific behavior is handled through the builder, keeping the class
  * limited to providing translations, constraints and the final callback.
  */
 public class MineLadderOptionScreen extends CodecOptionScreen<MineLadderConfig> {

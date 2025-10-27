@@ -6,7 +6,9 @@
   "mixins": [
   ],
   "client": [
-    "client.CreateWorldScreenAccessor"
+    "client.CreateWorldScreenAccessor",
+    "client.CreateWorldScreenMixin",
+    "client.WorldCreationUiStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

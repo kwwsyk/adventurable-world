@@ -11,7 +11,4 @@ public interface CreateWorldScreenAccessor {
 
     @Accessor("uiState")
     WorldCreationUiState adventure_suit$getUiState();
-
-    @Accessor("gameModeButton")
-    CycleButton<?> adventure_suit$getGameModeButton();
 }

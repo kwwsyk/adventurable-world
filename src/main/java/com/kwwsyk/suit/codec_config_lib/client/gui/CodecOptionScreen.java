@@ -88,7 +88,7 @@ public class CodecOptionScreen<T> extends ParseCodecOptionScreen {
     private void captureSchema() {
         DataResult<OptionSchema<T>> result = CodecConfigApi.buildSchema(originalConfig, codec);
         this.schema = result.result().orElse(null);
-        this.lifecycleStatus = Component.translatable("adv_option.codec.lifecycle", LifecycleUtil.lifecycleOrStable(result));
+        this.lifecycleStatus = Component.translatable("adv_option.codec.lifecycle", LifecycleUtil.lifecycleOrStable(result).toString());
         result.error().ifPresent(error -> this.errorStatus = Component.translatable("adv_option.codec.error", error.message()));
         if (this.schema == null) {
             this.errorStatus = Component.translatable("adv_option.codec.schema_missing");
@@ -492,7 +492,7 @@ public class CodecOptionScreen<T> extends ParseCodecOptionScreen {
             }
             StringBuilder builder = new StringBuilder();
             for (ValuePath.Segment segment : path) {
-                if (builder.length() > 0) {
+                if (!builder.isEmpty()) {
                     builder.append('.');
                 }
                 builder.append(segment.isKey() ? segment.key() : segment.index());
@@ -505,7 +505,7 @@ public class CodecOptionScreen<T> extends ParseCodecOptionScreen {
                 return "root";
             }
             List<ValuePath.Segment> segments = path.segments();
-            ValuePath.Segment segment = segments.get(segments.size() - 1);
+            ValuePath.Segment segment = segments.getLast();
             return segment.isKey() ? segment.key() : String.valueOf(segment.index());
         }
     }

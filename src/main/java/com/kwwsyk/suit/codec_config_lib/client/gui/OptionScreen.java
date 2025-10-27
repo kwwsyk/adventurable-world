@@ -50,7 +50,7 @@ public class OptionScreen extends Screen {
         if (this.optionList == null) {
             this.layout.addTitleHeader(this.title, this.getMinecraft().font);
             this.optionList = this.layout.addToContents(new OptionList());
-            //this.optionList.setRenderBackground(false);
+            //this.optionList.setRenderBackground(false);//todo BUG: DONE and CANCEL button overlap (are in same pos)
             this.doneButton = Button.builder(CommonComponents.GUI_DONE, button -> this.onDone()).build();
             this.layout.addToFooter(this.doneButton);
             this.layout.addToFooter(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build());
