@@ -8,8 +8,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
-import static com.kwwsyk.suit.adventurableworld.worldgen.feature.configurations.MineLadderConfig.LengthInclude.*;
-
 public class ConfiguredFeatures {
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> SHORT_LADDER_CONFIG = ResourceKey.create(
@@ -34,27 +32,29 @@ public class ConfiguredFeatures {
      */
     public static void addConfiguredFeature(RegistrySetBuilder Builder){
         Builder.add(Registries.CONFIGURED_FEATURE, bootstrap -> {
+            WorldgenSettings settings = WorldgenSettingsManager.get();
+
             bootstrap.register(
                     // The resource key of our configured feature.
                     SIMPLE_LADDER_CONFIG,
                     // The actual configured feature.
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MineLadderConfig(true,4,32, false, DROP)
+                            settings.simpleLadder()
                     )
             );
             bootstrap.register(
                     SHORT_LADDER_CONFIG,
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MineLadderConfig(false,2,10, true, BOTH)
+                            settings.shortLadder()
                     )
             );
             bootstrap.register(
                     LONG_LADDER_CONFIG,
                     new ConfiguredFeature<>(
                             FeaturesReg.SIMPLE_LADDER.value(),
-                            new MineLadderConfig(true,15,64, true, DROP)
+                            settings.longLadder()
                     )
             );
         });

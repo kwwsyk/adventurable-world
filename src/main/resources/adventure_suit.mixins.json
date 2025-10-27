@@ -6,6 +6,7 @@
   "mixins": [
   ],
   "client": [
+    "client.CreateWorldScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
