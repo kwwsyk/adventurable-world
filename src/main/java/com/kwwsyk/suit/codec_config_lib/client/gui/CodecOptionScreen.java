@@ -192,8 +192,9 @@ public class CodecOptionScreen<T> extends ParseCodecOptionScreen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawString(font, lifecycleStatus, 20, height - 55, 0xFFFFFF, false);
-        guiGraphics.drawString(font, errorStatus, 20, height - 42, 0xFF8888, false);
+        int baseY = this.getDoneButton().getY() + this.getDoneButton().getHeight() + 6;
+        guiGraphics.drawString(font, lifecycleStatus, 20, baseY, 0xFFFFFF, false);
+        guiGraphics.drawString(font, errorStatus, 20, baseY + font.lineHeight + 3, 0xFF8888, false);
     }
 
     public boolean usesDynamicMapCodec() {
