@@ -32,6 +32,7 @@ public class OptionScreen extends Screen {
     @Nullable
     private OptionList optionList;
     private Button doneButton;
+    private Button cancelButton;
 
     /**
      * Creates a new screen.
@@ -53,7 +54,8 @@ public class OptionScreen extends Screen {
             //this.optionList.setRenderBackground(false);//todo BUG: DONE and CANCEL button overlap (are in same pos)
             this.doneButton = Button.builder(CommonComponents.GUI_DONE, button -> this.onDone()).build();
             this.layout.addToFooter(this.doneButton);
-            this.layout.addToFooter(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build());
+            this.cancelButton = Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build();
+            this.layout.addToFooter(this.cancelButton);
         }
         this.layout.visitWidgets(this::addRenderableWidget);
         OptionList list = this.optionList();
@@ -67,6 +69,29 @@ public class OptionScreen extends Screen {
         this.layout.arrangeElements();
         if (this.optionList != null) {
             this.optionList.updateSize(this.width, this.layout);
+        }
+        if (this.doneButton != null && this.cancelButton != null) {
+            int margin = 5;
+            int spacing = 10;
+            int available = Math.max(0, this.width - margin * 2);
+            int buttonWidth = Math.min(150, Math.max(80, (available - spacing) / 2));
+            int totalButtonsWidth = buttonWidth * 2 + spacing;
+            if (totalButtonsWidth > available) {
+                buttonWidth = Math.max(60, (available - spacing) / 2);
+                totalButtonsWidth = buttonWidth * 2 + spacing;
+            }
+            int buttonY = this.doneButton.getY();
+            int startX = Math.max(margin, (this.width - totalButtonsWidth) / 2);
+            int leftX = startX;
+            int rightX = leftX + buttonWidth + spacing;
+            if (rightX + buttonWidth > this.width - margin) {
+                rightX = this.width - margin - buttonWidth;
+                leftX = Math.max(margin, rightX - spacing - buttonWidth);
+            }
+            this.doneButton.setWidth(buttonWidth);
+            this.cancelButton.setWidth(buttonWidth);
+            this.doneButton.setPosition(leftX, buttonY);
+            this.cancelButton.setPosition(rightX, buttonY);
         }
     }
 

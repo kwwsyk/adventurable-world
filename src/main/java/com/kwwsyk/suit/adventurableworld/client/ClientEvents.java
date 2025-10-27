@@ -38,11 +38,16 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
                 .findFirst()
                 .orElse(null);
 
-        if(reference!=null)
-            event.removeListener(reference);
+        if (reference == null) {
+            return;
+        }
 
-        int x = reference != null ? reference.getX() : screen.width / 2 - 155;
-        int y = reference != null ? reference.getY() : 100;
+        event.removeListener(reference);
+
+        int x = reference.getX();
+        int y = reference.getY();
+        int width = reference.getWidth();
+        int height = reference.getHeight();
 
         ExtendedGameMode initial = ExtendedGameMode.from(uiState);
 
@@ -52,8 +57,8 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
                 .withCustomNarration(CycleButton::createDefaultNarrationMessage)
                 .displayOnlyValue()
                 .create(x, y,
-                        reference != null ? reference.getWidth() : 150,
-                        reference != null ? reference.getHeight() : 20,
+                        width,
+                        height,
                         Component.translatable("selectWorld.gameMode"),
                         (button, value) -> applyGameMode(uiState, value, screen)
                 );
@@ -62,9 +67,9 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
         //applyGameMode(uiState, initial);
         event.addListener(gameModeButton);
 
-        int buttonX = x + (reference != null ? reference.getWidth() + 5 : 155);
+        int buttonX = x + width + 5;
         Button optionsButton = Button.builder(Component.translatable("adv_option.worldgen.configure"), btn -> openOptions(screen))
-                .bounds(buttonX, y, 120, reference != null ? reference.getHeight() : 20)
+                .bounds(buttonX, y, 120, height)
                 .build();
         event.addListener(optionsButton);
     }
