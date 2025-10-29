@@ -233,6 +233,13 @@ public class CodecOptionScreen<T> extends ParseCodecOptionScreen {
         public List<? extends GuiEventListener> children() {
             return List.of();
         }
+
+        @Override
+        public int getItemHeight() {
+            int lines = jsonPreviewTooltip.size();
+            int contentHeight = 12 + lines * 10;
+            return Math.max(24, contentHeight);
+        }
     }
 
     private final class BooleanEditorProvider implements EditorProvider {
