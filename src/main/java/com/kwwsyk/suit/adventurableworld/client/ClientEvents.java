@@ -25,6 +25,7 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
     private ClientEvents() {
     }
 
+
     @SubscribeEvent
     public static void onCreateWorldInit(ScreenEvent.Init.Post event) {
         if (!(event.getScreen() instanceof CreateWorldScreen screen)) {
@@ -32,6 +33,10 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
         }
 
         WorldCreationUiState uiState = ((CreateWorldScreenAccessor) screen).adventure_suit$getUiState();
+
+        Button optionButton = ((AdvWOptionButtonAccess)screen).getOptionButton();
+
+
 
         AbstractWidget reference = (AbstractWidget) event.getListenersList().stream()
                 .filter(widget -> widget instanceof CycleButton<?> cycle && cycle.getMessage().getString().contains("Game Mode"))
@@ -42,14 +47,19 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
             return;
         }
 
-        event.removeListener(reference);
+        if(optionButton!=null){
+            optionButton.setX(reference.getX() + 5 + 210);
+            optionButton.setY(reference.getY());
+        }
+
+//        event.removeListener(reference);
 
         int x = reference.getX();
         int y = reference.getY();
         int width = reference.getWidth();
         int height = reference.getHeight();
 
-        ExtendedGameMode initial = ExtendedGameMode.from(uiState);
+/*        ExtendedGameMode initial = ExtendedGameMode.from(uiState);
 
         CycleButton<ExtendedGameMode> gameModeButton = CycleButton.<ExtendedGameMode>builder(ExtendedGameMode::title)
                 .withValues(ExtendedGameMode.values())
@@ -65,13 +75,13 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
 
         gameModeButton.setTooltip(Tooltip.create(Component.translatable("adv_option.worldgen.adventure.tooltip")));
         //applyGameMode(uiState, initial);
-        event.addListener(gameModeButton);
+        event.addListener(gameModeButton);*/
 
-        int buttonX = x + width + 5;
+       /* int buttonX = x + width + 5;
         Button optionsButton = Button.builder(Component.translatable("adv_option.worldgen.configure"), btn -> openOptions(screen))
                 .bounds(buttonX, y, 120, height)
                 .build();
-        event.addListener(optionsButton);
+        event.addListener(optionsButton);*/
     }
 
     private static void applyGameMode(WorldCreationUiState uiState, ExtendedGameMode mode, CreateWorldScreen screen) {
@@ -86,7 +96,7 @@ public final class ClientEvents {//todo BUG: switch to World & More tab will not
         uiState.setAllowCommands(mode.allowCheats());
     }
 
-    private static void openOptions(Screen parent) {
+    public static void openOptions(Screen parent) {
         Minecraft.getInstance().setScreen(new AdvOptionScreen(parent));
     }
 

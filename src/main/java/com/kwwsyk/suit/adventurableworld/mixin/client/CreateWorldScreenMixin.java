@@ -1,7 +1,9 @@
 package com.kwwsyk.suit.adventurableworld.mixin.client;
 
+import com.kwwsyk.suit.adventurableworld.client.AdvWOptionButtonAccess;
 import com.kwwsyk.suit.adventurableworld.client.ClientEvents;
 import com.kwwsyk.suit.adventurableworld.client.CreateWorldScreenExt;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.world.Difficulty;
@@ -18,12 +20,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CreateWorldScreen.class)
-public class CreateWorldScreenMixin implements CreateWorldScreenExt {
+public class CreateWorldScreenMixin implements CreateWorldScreenExt, AdvWOptionButtonAccess {
 
     @Unique
-    ClientEvents.ExtendedGameMode gameMode = null;
+    ClientEvents.ExtendedGameMode gameMode = ClientEvents.ExtendedGameMode.SURVIVAL;
     @Shadow@Final
     WorldCreationUiState uiState;
+
+    @Unique
+    Button optionsButton;
 
     @Unique
     public ClientEvents.ExtendedGameMode adventure_suit$getGameMode() {
@@ -52,5 +57,15 @@ public class CreateWorldScreenMixin implements CreateWorldScreenExt {
                 this.uiState.getSettings().dataConfiguration()
         );
         cir.setReturnValue(n_ret);
+    }
+
+    @Override
+    public Button getOptionButton() {
+        return optionsButton;
+    }
+
+    @Override
+    public void setOptionButton(Button button) {
+        optionsButton = button;
     }
 }

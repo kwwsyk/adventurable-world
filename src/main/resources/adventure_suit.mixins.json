@@ -6,8 +6,11 @@
   "mixins": [
   ],
   "client": [
+    "client.CreateWorldScreen$GameTabMixin",
     "client.CreateWorldScreenAccessor",
     "client.CreateWorldScreenMixin",
+    "client.GridLayoutAccessor",
+    "client.GridLayoutTabAccessor",
     "client.WorldCreationUiStateMixin"
   ],
   "injectors": {

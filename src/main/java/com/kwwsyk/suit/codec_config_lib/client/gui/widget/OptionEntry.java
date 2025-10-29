@@ -167,7 +167,7 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
                                   CycleButton.OnValueChange<Boolean> onValueChange
         ) {
             super(screen, label, comment,
-                    CycleButton.onOffBuilder().withInitialValue(defaultValue)
+                    CycleButton.onOffBuilder().displayOnlyValue().withInitialValue(defaultValue)
                             .create(0, 0, Constants.DEFAULT_CONTROL_WIDTH, 20, label, onValueChange)
             );
         }
@@ -301,7 +301,7 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
 
         public StringEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip,
                            String defaultValue,
-                           Predicate<String> validator,
+                           @Nullable Predicate<String> validator,
                            @Nullable Consumer<String> onValueChanged
         ) {
             super(screen, label, tooltip);
