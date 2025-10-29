@@ -198,6 +198,7 @@ public abstract class OptionEntry extends ContainerObjectSelectionList.Entry<Opt
         public EditBoxConfigEntry(OptionScreen screen, Component label, @Nullable List<FormattedCharSequence> tooltip) {
             super(screen, label, tooltip);
             value = editBox.getValue();
+            this.children.add(editBox);
         }
 
         @Override
